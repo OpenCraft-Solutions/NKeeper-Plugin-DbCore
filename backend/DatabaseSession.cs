@@ -209,6 +209,7 @@ internal sealed class DatabaseSession : ToolSession
 
         try
         {
+            await Dialect.PrepareWindowAsync(connection, cancellationToken);
             var info = await Dialect.ServerInfoAsync(connection, cancellationToken);
             string? warning = null;
             if (database is { Length: > 0 })

@@ -32,6 +32,9 @@ public interface IDatabaseDialect
     /// <summary>What the server says about itself, and the connection's own session on it.</summary>
     Task<DatabaseServerInfo> ServerInfoAsync(DbConnection connection, CancellationToken cancellationToken);
 
+    /// <summary>Readies a query window's new connection, such as Oracle's DBMS_OUTPUT, which its messages come from. By default, nothing.</summary>
+    Task PrepareWindowAsync(DbConnection connection, CancellationToken cancellationToken) => Task.CompletedTask;
+
     /// <param name="lineOffset">Lines before <paramref name="script"/> in the editor (when running a selection), so errors point at the editor's lines.</param>
     Task<SqlQueryResult> RunAsync(DbConnection connection, string script, int lineOffset, CancellationToken cancellationToken);
 

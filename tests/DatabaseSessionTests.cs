@@ -49,6 +49,7 @@ public sealed class DatabaseSessionTests : IAsyncLifetime
         Assert.Equal(["1", "2"], set.GetProperty("rows").EnumerateArray().Select(r => r[0].GetString()!));
 
         var other = await OpenWindowAsync();
+        Assert.Equal(2, Dialect.Prepared);
         var missing = await _channel.ReplyAsync("query", new { window = other, sql = "SELECT n FROM t", lineOffset = 4 });
         Assert.True(missing.GetProperty("hasErrors").GetBoolean());
         Assert.Equal(5, missing.GetProperty("output")[0].GetProperty("line").GetInt32());

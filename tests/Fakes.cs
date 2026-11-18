@@ -94,6 +94,15 @@ internal sealed class SqliteDialect : IDatabaseDialect
 
     public List<(int SessionId, int? Serial)> Killed { get; } = [];
 
+    /// <summary>Connections readied for a query window.</summary>
+    public int Prepared { get; private set; }
+
+    public Task PrepareWindowAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        Prepared++;
+        return Task.CompletedTask;
+    }
+
     public Task<DatabaseServerInfo> ServerInfoAsync(DbConnection connection, CancellationToken cancellationToken) =>
         Task.FromResult(new DatabaseServerInfo("memory", connection.ServerVersion, null, null, "tester", connection.GetHashCode() & 0x7fff));
 
