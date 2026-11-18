@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="backend/NKeeper.Plugins.Databases.csproj" />
+  <Project Path="tests/NKeeper.Plugins.Databases.Tests.csproj" />
+</Solution>

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The db-core plugin (docs/architecture.md §7.32): what every database engine plugin shares. Its one assembly is
+    exported (plugin-security.md §7.1), so the engines (mssql, oracle, ase) load this copy of it, and it's published
+    as a NuGet package for them to build against. Built, packed and signed by NKeeper.Plugin.Build, which also builds
+    ../frontend with npm. It brings the plugin's .nkp to ../artifacts/plugins.
+  -->
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageId>NKeeper.Plugins.Databases</PackageId>
+    <Authors>OpenCraft Solutions</Authors>
+    <Description>NKeeper's db-core plugin, for the database engine plugins that depend on it: the engine contract, the database session, and its tools.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/OpenCraft-Solutions/NKeeper-Plugin-DbCore</RepositoryUrl>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- CS1591/CS1573: not every member or parameter needs a comment. CA1720: DbQuery.Int and Long read those columns, as in 1.x. -->
+    <NoWarn>$(NoWarn);CS1591;CS1573;CA1720</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <!-- The SDK is shared from the server, so it isn't copied into the plugin's output (plugin-security.md §7.1). -->
+    <PackageReference Include="NKeeper.Abstractions" ExcludeAssets="runtime" />
+    <PackageReference Include="NKeeper.Plugin.Build" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="NKeeper.Plugins.Databases.Tests" />
+  </ItemGroup>
+
+</Project>

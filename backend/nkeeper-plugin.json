@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "id": "db-core",
+  "name": "Databases",
+  "version": "1.0.0",
+  "sdkVersion": ">=1.8.0 <2.0.0",
+  "builtIn": true,
+  "frontend": {
+    "entry": "frontend/index.js"
+  },
+  "backend": {
+    "entryAssembly": "backend/NKeeper.Plugins.Databases.dll",
+    "entryType": "NKeeper.Plugins.Databases.DbCorePlugin",
+    "exportedAssemblies": ["backend/NKeeper.Plugins.Databases.dll"]
+  }
+}
