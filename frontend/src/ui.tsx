@@ -114,6 +114,16 @@ export const databaseStyles = `
 .nk-db-tool-header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
 .nk-db-tool-header h2 { margin: 0; font-size: 1.0625rem; font-weight: 650; }
 .nk-db-tool-header p { margin: 0.125rem 0 0; color: var(--color-text-muted, #9aa8c1); font-size: 0.8125rem; }
+.nk-db-report-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; font-size: 0.8125rem; }
+.nk-db-report-section { border: 1px solid var(--color-border, #233150); border-radius: var(--radius-md, 8px); padding: 0.5rem 0.75rem; }
+.nk-db-report-section > summary { cursor: pointer; }
+.nk-db-report-section > summary h3 { display: inline; margin: 0; font-size: 0.9375rem; font-weight: 620; }
+.nk-db-report-grid { max-height: 24rem; overflow: auto; margin-top: 0.5rem; }
+.nk-db-report-message { margin: 0.5rem 0 0; padding: 0.5rem; overflow: auto; white-space: pre-wrap; font-size: 0.8125rem;
+  border-radius: var(--radius-md, 8px); background: var(--color-surface-raised, #16213a); }
+.nk-db-report-copy { padding: 0.75rem; border: 1px solid var(--color-border-strong, #33456b); border-radius: var(--radius-md, 8px); }
+.nk-db-report-copy h3 { margin: 0; font-size: 0.9375rem; }
+ul.nk-db-notice { flex-direction: column; align-items: flex-start; padding-left: 1.75rem; }
 .nk-db-table { width: 100%; }
 .nk-db-table th, .nk-db-table td { padding: 0.375rem 0.5rem; border-bottom: 1px solid var(--color-border, #233150); text-align: left; vertical-align: top; }
 .nk-db-table th { position: sticky; top: -0.75rem; background: var(--color-bg, #0b1220); font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted, #9aa8c1); }
