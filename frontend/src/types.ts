@@ -134,3 +134,35 @@ export const SCRIPT_LABELS: Record<ScriptAction, string> = {
 export const TOOLS: Record<string, { title: string }> = {
   blocking: { title: 'Blocking Manager' },
 }
+
+/** A Management report the engine offers (db-core 1.1). Its explorer node's tool is `report:<name>`. */
+export interface DatabaseReportInfo {
+  name: string
+  label: string
+  detail: string
+}
+
+/** A script a report offers: SQL opens in a query window; `copy` is shown to run elsewhere (RMAN). */
+export interface ToolScript {
+  label: string
+  text: string
+  kind: 'sql' | 'copy'
+}
+
+export interface ToolSection {
+  title: string
+  command: string
+  results: SqlOutput[]
+  error: string | null
+  scripts?: ToolScript[] | null
+  note?: string | null
+}
+
+export interface ToolReport {
+  warnings: string[]
+  sections: ToolSection[]
+  atUtc: string
+}
+
+/** The prefix of a report's tool name in the explorer. */
+export const REPORT_TOOL = 'report:'

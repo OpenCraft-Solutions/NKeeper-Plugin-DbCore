@@ -8,14 +8,15 @@ db-core contributes nothing on its own. Each engine plugin (`mssql`, say) depend
 
 **For an engine's backend**, its one assembly, `NKeeper.Plugins.Databases`, is exported, so every engine uses db-core's copy. It is also published as a NuGet package of the same name, which engines build against:
 - `IDatabaseEngine`: opens the login with the engine's driver, through core (`IConnectivity.OpenDatabaseAsync`, §7.31), and gives the engine's `IDatabaseDialect`;
-- `IDatabaseDialect`: the server's SQL for the query runner, the object explorer, scripts, blocking and kill;
+- `IDatabaseDialect`: the server's SQL for the query runner, the object explorer, scripts, blocking and kill, and (1.1.0) its Management reports: `Reports` and `ReportAsync`, both optional;
 - `DatabaseSessionHandler<TEngine>`: the engine's session type's handler, registered with `services.AddDatabaseEngine<TEngine>()`;
-- what the dialects share, ported from 1.x: `BlockingChains`, `DbValueText`, `DbQuery`, and the results' records.
+- what the dialects share, ported from 1.x: `BlockingChains`, `DbValueText`, `DbQuery`, the results' records, and the reports' `ToolReport`, `ToolSection`, `ToolScript` and `ToolReports` (a section from one query, whose error, when the server refuses it, is the section's).
 
 **For an engine's frontend**, it exports `DatabaseView`, the database tab, ported from 1.x. The engine wraps it in its session view (`context.use('db-core')`, SDK 1.8), with what it says about itself:
 - the object explorer, a level at a time, with each node's scripts;
 - query windows, each on a connection of its own, with results as grids or text and messages beside them;
-- the blocking manager, with kill, audited as `<engine>.kill`.
+- the blocking manager, with kill, audited as `<engine>.kill`;
+- the engine's Management reports, 1.x's: what needs attention, then each section's grids, with the scripts it offers (SQL opens in a query window, RMAN commands are shown to copy). A report only reads. The engine lists one in the explorer's Management folder as the tool `report:<name>`.
 
 The plugin's ID is `db-core`, and it is built in: it is signed with NKeeper's official key and installed with NKeeper.
 

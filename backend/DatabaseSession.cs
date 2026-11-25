@@ -93,7 +93,7 @@ internal sealed class DatabaseSession : ToolSession
         switch (request.Type)
         {
             case "info":
-                await ReplyAsync(request.Id, new { server = _server, product = _engine.Product }, cancellationToken);
+                await ReplyAsync(request.Id, new { server = _server, product = _engine.Product, reports = Dialect.Reports }, cancellationToken);
                 break;
 
             case "window.open":
@@ -157,6 +157,18 @@ internal sealed class DatabaseSession : ToolSession
                     }
 
                     Tool(request.Id, async connection => new { sql = await Dialect.ScriptAsync(connection, node, action, cancellationToken) }, cancellationToken);
+                    break;
+                }
+
+            case "report":
+                {
+                    var name = request.RequiredText("name", 64);
+                    if (!Dialect.Reports.Any(r => r.Name == name))
+                    {
+                        throw new ToolException($"There's no “{name}” report.");
+                    }
+
+                    Tool(request.Id, connection => Dialect.ReportAsync(connection, name, _time.GetUtcNow(), cancellationToken), cancellationToken);
                     break;
                 }
 

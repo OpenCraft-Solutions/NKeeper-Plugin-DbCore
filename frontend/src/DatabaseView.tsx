@@ -5,8 +5,9 @@ import { ToolError, type ToolClient } from './client'
 import { storedNumber, storeNumber } from './format'
 import { ObjectExplorer } from './ObjectExplorer'
 import { QueryWindow } from './QueryWindow'
+import { ReportView } from './ReportView'
 import { useTool } from './tool'
-import { TOOLS, type DatabaseEngineInfo, type ScriptAction, type ServerInfo, type SqlObjectNode } from './types'
+import { REPORT_TOOL, TOOLS, type DatabaseEngineInfo, type DatabaseReportInfo, type ScriptAction, type ServerInfo, type SqlObjectNode } from './types'
 import { Spinner, Splitter } from './ui'
 
 /** What an engine's view gives db-core's: the session view's own props, and the engine. */
@@ -67,12 +68,12 @@ export function DatabaseView({ connect, host, visible, engine }: DatabaseViewPro
 
 /** One connection's tab: what the server says it is, then the workspace. A reconnection mounts another. */
 function Connected({ client, engine, host, visible, reconnect }: { client: ToolClient; engine: DatabaseEngineInfo; host: { name: string }; visible: boolean; reconnect: () => void }) {
-  const [info, setInfo] = useState<{ server: ServerInfo } | { error: string } | null>(null)
+  const [info, setInfo] = useState<{ server: ServerInfo; reports: DatabaseReportInfo[] } | { error: string } | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    client.request<{ server: ServerInfo }>('info').then(
-      ({ server }) => !cancelled && setInfo({ server }),
+    client.request<{ server: ServerInfo; reports?: DatabaseReportInfo[] }>('info').then(
+      ({ server, reports }) => !cancelled && setInfo({ server, reports: reports ?? [] }),
       (error: unknown) => !cancelled && setInfo({ error: error instanceof ToolError ? error.message : 'The server didn’t say what it is.' }),
     )
     return () => {
@@ -86,7 +87,7 @@ function Connected({ client, engine, host, visible, reconnect }: { client: ToolC
   if ('error' in info) {
     return <Failed engine={engine} message={info.error} reconnect={reconnect} />
   }
-  return <Workspace client={client} engine={engine} server={info.server} visible={visible} />
+  return <Workspace client={client} engine={engine} server={info.server} reports={info.reports} visible={visible} />
 }
 
 function Connecting({ engine, host }: { engine: DatabaseEngineInfo; host: { name: string } }) {
@@ -118,7 +119,20 @@ function Failed({ engine, message, reconnect }: { engine: DatabaseEngineInfo; me
   )
 }
 
-function Workspace({ client, engine, server, visible }: { client: ToolClient; engine: DatabaseEngineInfo; server: ServerInfo; visible: boolean }) {
+function Workspace({
+  client,
+  engine,
+  server,
+  reports,
+  visible,
+}: {
+  client: ToolClient
+  engine: DatabaseEngineInfo
+  server: ServerInfo
+  reports: DatabaseReportInfo[]
+  visible: boolean
+}) {
+  const reportOf = (tool: string) => (tool.startsWith(REPORT_TOOL) ? reports.find((r) => r.name === tool.slice(REPORT_TOOL.length)) : undefined)
   const [documents, setDocuments] = useState<Document[]>(() => [{ id: `doc-${nextDocument++}`, kind: 'query', title: 'SQLQuery1', sql: '' }])
   const [activeDocument, setActiveDocument] = useState<string | null>(() => documents[0]?.id ?? null)
   const [databases, setDatabases] = useState<string[]>([])
@@ -177,7 +191,7 @@ function Workspace({ client, engine, server, visible }: { client: ToolClient; en
     const added: Document =
       document.kind === 'query'
         ? { ...document, id, title: document.title ?? `SQLQuery${queries + 1}` }
-        : { kind: 'tool', tool: document.tool, id, title: TOOLS[document.tool]?.title ?? document.tool }
+        : { kind: 'tool', tool: document.tool, id, title: TOOLS[document.tool]?.title ?? reportOf(document.tool)?.label ?? document.tool }
     setDocuments((current) => [...current, added])
     setActiveDocument(id)
   }
@@ -211,7 +225,7 @@ function Workspace({ client, engine, server, visible }: { client: ToolClient; en
   }
 
   function openTool(tool: string) {
-    if (TOOLS[tool]) {
+    if (TOOLS[tool] || reportOf(tool)) {
       addDocument({ kind: 'tool', tool })
     } else {
       // The engine offers a tool this db-core doesn't have: db-core is older than the engine.
@@ -285,6 +299,14 @@ function Workspace({ client, engine, server, visible }: { client: ToolClient; en
               initialDatabase={document.database}
               runOnOpen={document.runOnOpen}
               active={visible && document.id === activeDocument}
+            />
+          ) : reportOf(document.tool) ? (
+            <ReportView
+              key={document.id}
+              client={client}
+              report={reportOf(document.tool)!}
+              active={visible && document.id === activeDocument}
+              onOpenQuery={(sql) => addDocument({ kind: 'query', sql })}
             />
           ) : (
             <BlockingManager

@@ -167,6 +167,22 @@ public sealed class DatabaseSessionTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task An_engines_report_reads_its_sections_and_a_section_the_server_refuses_says_why()
+    {
+        var info = await _channel.ReplyAsync("info");
+        Assert.Equal("tables", info.GetProperty("reports")[0].GetProperty("name").GetString());
+
+        var report = await _channel.ReplyAsync("report", new { name = "tables" });
+        Assert.Equal("The answer is 42.", report.GetProperty("warnings")[0].GetString());
+        var sections = report.GetProperty("sections");
+        Assert.Equal("42", sections[0].GetProperty("results")[0].GetProperty("rows")[0][0].GetString());
+        Assert.Equal("Again", sections[0].GetProperty("scripts")[0].GetProperty("label").GetString());
+        Assert.Contains("nowhere", sections[1].GetProperty("error").GetString(), StringComparison.Ordinal);
+
+        Assert.Contains("no “drop” report", await _channel.ErrorAsync("report", new { name = "drop" }), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task An_unknown_request_is_refused_and_the_session_goes_on()
     {
         Assert.Contains("doesn't know", await _channel.ErrorAsync("drop-everything"), StringComparison.Ordinal);

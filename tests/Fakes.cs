@@ -94,6 +94,29 @@ internal sealed class SqliteDialect : IDatabaseDialect
 
     public List<(int SessionId, int? Serial)> Killed { get; } = [];
 
+    public IReadOnlyList<DatabaseReportInfo> Reports => [new("tables", "Tables", "What the database holds")];
+
+    /// <summary>A report as an engine writes one: a section that reads, one the server refuses, and a warning from what it read.</summary>
+    public async Task<ToolReport> ReportAsync(DbConnection connection, string name, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        static async Task<SqlOutput> Read(DbDataReader reader, CancellationToken ct)
+        {
+            var columns = Enumerable.Range(0, reader.FieldCount).Select(i => new SqlColumn(reader.GetName(i), reader.GetDataTypeName(i), false)).ToList();
+            var rows = new List<string?[]>();
+            while (await reader.ReadAsync(ct))
+            {
+                rows.Add([.. Enumerable.Range(0, reader.FieldCount).Select(i => reader.IsDBNull(i) ? null : Convert.ToString(reader.GetValue(i), System.Globalization.CultureInfo.InvariantCulture))]);
+            }
+
+            return new SqlOutput("results", Columns: columns, Rows: rows, RowCount: rows.Count);
+        }
+
+        var good = await ToolReports.SectionAsync(connection, "Answer", "select", "SELECT 42 AS \"Value\"", Read, e => e is DbException, cancellationToken, scripts: [new ToolScript("Again", "SELECT 42")]);
+        var bad = await ToolReports.SectionAsync(connection, "Missing", "nowhere", "SELECT * FROM nowhere", Read, e => e is DbException, cancellationToken);
+        var warnings = ToolReports.Rows(good).Select(r => ToolReports.Number(r.Columns, r.Row, "value")).Where(v => v > 40).Select(v => $"The answer is {v}.").ToList();
+        return new ToolReport(warnings, [good, bad], now);
+    }
+
     /// <summary>Connections readied for a query window.</summary>
     public int Prepared { get; private set; }
 

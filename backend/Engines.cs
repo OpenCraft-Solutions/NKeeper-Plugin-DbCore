@@ -65,6 +65,14 @@ public interface IDatabaseDialect
     /// <see cref="DbException"/>s; a driver whose aren't (AdoNetCore.AseClient's) says so here.
     /// </summary>
     bool IsServerError(Exception exception) => exception is DbException;
+
+    /// <summary>The Management reports the engine offers (db-core 1.1, from 1.x), in the order the sidebar lists them. By default, none.</summary>
+    IReadOnlyList<DatabaseReportInfo> Reports => [];
+
+    /// <summary>One of <see cref="Reports"/>, read on the session's own connection. It reads only: scripts it offers are never run.</summary>
+    /// <exception cref="DatabaseToolException">The engine has no report of that name.</exception>
+    Task<ToolReport> ReportAsync(DbConnection connection, string name, DateTimeOffset now, CancellationToken cancellationToken) =>
+        throw new DatabaseToolException($"There's no “{name}” report.");
 }
 
 /// <summary>A request the explorer or a script can't serve, such as a node of a kind it doesn't know: shown to the user.</summary>
